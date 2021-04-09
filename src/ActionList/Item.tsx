@@ -4,6 +4,33 @@ import {get} from '../constants'
 import sx, {SxProp} from '../sx'
 import {ItemInput} from './List'
 import styled from 'styled-components'
+import {useColorSchemeVar} from '../ThemeProvider'
+
+/**
+ * These colors are not yet in our default theme.  Need to remove this once they are added.
+ */
+const customItemThemes = {
+  default: {
+    hover: {
+      light: 'rgba(46, 77, 108, 0.06)',
+      dark: 'rgba(201, 206, 212, 0.12)'
+    },
+    focus: {
+      light: 'rgba(54, 77, 100, 0.16)',
+      dark: 'rgba(201, 206, 212, 0.24)'
+    }
+  },
+  danger: {
+    hover: {
+      light: 'rgba(234, 74, 90, 0.08)',
+      dark: 'rgba(248, 81, 73, 0.16)'
+    },
+    focus: {
+      light: 'rgba(234, 74, 90, 0.14)',
+      dark: 'rgba(248, 81, 73, 0.24)'
+    }
+  }
+} as const
 
 /**
  * Contract for props passed to the `Item` component.
@@ -112,7 +139,9 @@ const getItemVariant = (variant = 'default', disabled?: boolean) => {
   }
 }
 
-const StyledItem = styled.div<{variant: ItemProps['variant']; item?: ItemInput} & SxProp>`
+const StyledItem = styled.div<
+  {variant: ItemProps['variant']; item?: ItemInput; hoverBackground: string; focusBackground: string} & SxProp
+>`
   /* 6px vertical padding + 20px line height = 32px total height
    *
    * TODO: When rem-based spacing on a 4px scale lands, replace
@@ -125,9 +154,14 @@ const StyledItem = styled.div<{variant: ItemProps['variant']; item?: ItemInput} 
 
   @media (hover: hover) and (pointer: fine) {
     :hover {
-      background: ${({variant, item}) => getItemVariant(variant, item?.disabled).hoverBackground};
+      background: ${({hoverBackground}) => hoverBackground};
       cursor: ${({variant, item}) => getItemVariant(variant, item?.disabled).hoverCursor};
     }
+  }
+
+  &:focus {
+    background: ${({focusBackground}) => focusBackground};
+    outline: none;
   }
 
   ${sx}
@@ -229,6 +263,10 @@ export function Item(itemProps: Partial<ItemProps> & {item?: ItemInput}): JSX.El
     [onAction, disabled, itemProps, onClick]
   )
 
+  const customItemTheme = customItemThemes[variant]
+  const hoverBackground = useColorSchemeVar(customItemTheme.hover, 'inherit')
+  const focusBackground = useColorSchemeVar(customItemTheme.focus, 'inherit')
+
   return (
     <StyledItem
       tabIndex={disabled ? undefined : -1}
@@ -238,6 +276,8 @@ export function Item(itemProps: Partial<ItemProps> & {item?: ItemInput}): JSX.El
       data-id={id}
       onKeyPress={keyPressHandler}
       onClick={clickHandler}
+      hoverBackground={disabled ? 'inherit' : hoverBackground}
+      focusBackground={disabled ? 'inherit' : focusBackground}
     >
       {!!selected === selected && (
         <LeadingVisualContainer>

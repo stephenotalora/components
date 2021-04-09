@@ -12,12 +12,13 @@ import {
   ArrowLeftIcon
 } from '@primer/octicons-react'
 import {Meta} from '@storybook/react'
-import React from 'react'
+import React, {useRef} from 'react'
 import styled from 'styled-components'
 import {Label, ThemeProvider} from '..'
 import {ActionList as _ActionList} from '../ActionList'
 import {Header} from '../ActionList/Header'
 import BaseStyles from '../BaseStyles'
+import {useFocusZone} from '../hooks/useFocusZone'
 import sx from '../sx'
 
 const ActionList = Object.assign(_ActionList, {
@@ -81,10 +82,13 @@ export function ActionsStory(): JSX.Element {
 ActionsStory.storyName = 'Actions'
 
 export function SimpleListStory(): JSX.Element {
+  const containerRef = useRef(null)
+  useFocusZone({containerRef})
+
   return (
     <>
       <h1>Simple List</h1>
-      <ErsatzOverlay>
+      <ErsatzOverlay ref={containerRef}>
         <ActionList
           items={[
             {text: 'New file'},
