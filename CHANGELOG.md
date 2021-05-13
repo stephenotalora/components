@@ -1,5 +1,11 @@
 # @primer/components
 
+## 28.0.4
+
+### Patch Changes
+
+- [`84c7e771`](https://github.com/primer/components/commit/84c7e771f8ac9bb707fbb977658e9e40620bc20c) [#1225](https://github.com/primer/components/pull/1225) Thanks [@dgreif](https://github.com/dgreif)! - handle complex child reordering within a focusZone
+
 ## 28.0.3
 
 ### Patch Changes
