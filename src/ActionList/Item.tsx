@@ -7,6 +7,7 @@ import {ItemInput} from './List'
 import styled from 'styled-components'
 import {StyledHeader} from './Header'
 import {StyledDivider} from './Divider'
+import {uniqueId} from '../utils/uniqueId'
 
 /**
  * Contract for props passed to the `Item` component.
@@ -89,6 +90,8 @@ export interface ItemProps extends Omit<React.ComponentPropsWithoutRef<'div'>, '
   id?: number | string
 }
 
+export const itemActiveDescendantClass = `${uniqueId()}active-descendant`
+
 const getItemVariant = (variant = 'default', disabled?: boolean) => {
   if (disabled) {
     return {
@@ -144,6 +147,11 @@ const StyledItem = styled.div<
     }
   }
 
+  // Active Descendant
+  &.${itemActiveDescendantClass} {
+    box-shadow: ${get('shadows.btn.focusShadow')};
+  }
+
   // Item dividers
   :not(:first-of-type):not(${StyledDivider} + &):not(${StyledHeader} + &) {
     margin-top: ${({showDivider}) => (showDivider ? `1px` : '0')};
@@ -156,6 +164,13 @@ const StyledItem = styled.div<
       // NB: This 'get' won’t execute if it’s moved into the arrow function below.
       border: 0 solid ${get('colors.selectMenu.borderSecondary')};
       border-top-width: ${({showDivider}) => (showDivider ? `1px` : '0')};
+    }
+
+    // Override if current or previous item is active descendant
+    &.${itemActiveDescendantClass}, .${itemActiveDescendantClass} + & {
+      ${StyledItemContent}::before {
+        border-color: transparent;
+      }
     }
   }
 
@@ -278,7 +293,15 @@ export function Item(itemProps: Partial<ItemProps> & {item?: ItemInput}): JSX.El
                * readOnly is required because we are doing a one-way bind to `checked`.
                * aria-readonly="false" tells screen that they can still interact with the checkbox
                */}
-              <input type="checkbox" checked={selected} aria-label={text} readOnly aria-readonly="false" />
+              <input
+                disabled={disabled}
+                tabIndex={-1}
+                type="checkbox"
+                checked={selected}
+                aria-label={text}
+                readOnly
+                aria-readonly="false"
+              />
             </>
           ) : (
             selected && <CheckIcon />

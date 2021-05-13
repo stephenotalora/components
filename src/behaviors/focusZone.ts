@@ -371,6 +371,16 @@ export function focusZone(container: HTMLElement, settings?: FocusZoneSettings):
     }
   }
 
+  function updateCurrentFocusedIndex(activeElement: HTMLElement) {
+    const tabbableElementIndex = focusableElements.indexOf(activeElement)
+    if (tabbableElementIndex >= 0) {
+      const nextFocusedElement = focusableElements[tabbableElementIndex]
+      const previousFocusedElement = focusableElements[currentFocusedIndex]
+      updateTabIndex(previousFocusedElement, nextFocusedElement)
+      currentFocusedIndex = tabbableElementIndex
+    }
+  }
+
   function beginFocusManagement(...elements: HTMLElement[]) {
     const filteredElements = elements.filter(e => settings?.focusableElementFilter?.(e) ?? true)
     if (filteredElements.length === 0) {
@@ -389,6 +399,10 @@ export function focusZone(container: HTMLElement, settings?: FocusZoneSettings):
       }
       element.setAttribute('tabindex', '-1')
     }
+
+    if (currentFocusedElement) {
+      updateCurrentFocusedIndex(currentFocusedElement)
+    }
   }
 
   function endFocusManagement(...elements: HTMLElement[]) {
@@ -398,10 +412,22 @@ export function focusZone(container: HTMLElement, settings?: FocusZoneSettings):
         focusableElements.splice(focusableElementIndex, 1)
 
         // If removing the last-focused element, set tabindex=0 to the first element in the list.
-        if (element === currentFocusedElement && focusableElements.length > 0) {
-          updateTabIndex(undefined, focusableElements[0])
-          currentFocusedElement = focusableElements[0]
+        if (element === currentFocusedElement) {
           currentFocusedIndex = 0
+
+          if (focusableElements.length > 0) {
+            updateTabIndex(undefined, focusableElements[0])
+            currentFocusedElement = focusableElements[0]
+
+            if (activeDescendantControl) {
+              setActiveDescendant(element, currentFocusedElement)
+            }
+          } else {
+            if (activeDescendantControl) {
+              suspendActiveDescendant()
+            }
+            currentFocusedElement = undefined
+          }
         }
       }
       const savedIndex = savedTabIndex.get(element)
@@ -414,6 +440,10 @@ export function focusZone(container: HTMLElement, settings?: FocusZoneSettings):
         savedTabIndex.delete(element)
       }
     }
+
+    if (currentFocusedElement) {
+      updateCurrentFocusedIndex(currentFocusedElement)
+    }
   }
 
   // Take all tabbable elements within container under management
@@ -424,13 +454,7 @@ export function focusZone(container: HTMLElement, settings?: FocusZoneSettings):
   // stays consistent.
   const unsubscribeFromActiveElementChanges = subscribeToActiveElementChanges((activeElement: HTMLElement) => {
     if (focusInStrategy === 'previous') {
-      const tabbableElementIndex = focusableElements.indexOf(activeElement)
-      if (tabbableElementIndex >= 0) {
-        const nextFocusedElement = focusableElements[tabbableElementIndex]
-        const previousFocusedElement = focusableElements[currentFocusedIndex]
-        updateTabIndex(previousFocusedElement, nextFocusedElement)
-        currentFocusedIndex = tabbableElementIndex
-      }
+      updateCurrentFocusedIndex(activeElement)
     }
   })
 
@@ -592,8 +616,10 @@ export function focusZone(container: HTMLElement, settings?: FocusZoneSettings):
           let nextElementToFocus: HTMLElement | undefined = undefined
 
           if (activeDescendantSuspended) {
-            activeDescendantSuspended = false
-            nextElementToFocus = focusableElements[currentFocusedIndex]
+            nextElementToFocus = focusableElements[currentFocusedIndex] || focusableElements[0]
+            if (nextElementToFocus) {
+              activeDescendantSuspended = false
+            }
           } else {
             // If there is a custom function that retrieves the next focusable element, try calling that first.
             if (settings?.getNextFocusable) {

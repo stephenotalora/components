@@ -74,6 +74,7 @@ export function LabelStory(): JSX.Element {
         filterValue={filterValue}
         onFilterChange={onFilterChange}
         selectionVariant="multiple"
+        showItemDividers={true}
       />
     </>
   )

@@ -3,7 +3,7 @@ import React, {useCallback, useMemo} from 'react'
 import {FilteredActionList, FilteredActionListProps} from '../FilteredActionList'
 import {OverlayProps} from '../Overlay'
 import {ItemInput} from '../ActionList/List'
-import {FocusZoneSettings} from '../behaviors/focusZone'
+import {FocusZoneHookSettings} from '../hooks/useFocusZone'
 import {DropdownButton, DropdownButtonProps} from '../DropdownMenu'
 import {ItemProps} from '../ActionList'
 import {AnchoredOverlay} from '../AnchoredOverlay'
@@ -22,11 +22,9 @@ export interface SelectPanelProps extends Omit<FilteredActionListProps, 'onChang
   overlayProps?: Partial<OverlayProps>
 }
 
-const focusZoneSettings: Partial<FocusZoneSettings> = {
-  focusOutBehavior: 'wrap',
-  focusableElementFilter: element => {
-    return !(element instanceof HTMLInputElement) || element.type !== 'checkbox'
-  }
+const focusZoneSettings: Partial<FocusZoneHookSettings> = {
+  // Let FilteredActionList handle focus zone
+  disabled: true
 }
 
 export function SelectPanel({
